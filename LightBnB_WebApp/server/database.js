@@ -145,19 +145,31 @@ const getAllProperties = function(options, limit = 10) {
 
   } else {
 
-    //controls price range query flow
-    let cityEmpty = true;
+    //controls query format
+    let needWhere = true;
     let queryString = `
     SELECT properties.*, AVG(property_reviews.rating) AS average_rating
     FROM properties
-    JOIN property_reviews ON property_id = properties.id`;
+    LEFT JOIN property_reviews ON property_id = properties.id`;
     
+    if(options.owner_id) {
+      queryParams.push(options.owner_id);
+      queryString += ` WHERE properties.owner_id=$${queryParams.length} `;
+      needWhere = false;
+    }
+
     //if a city is provided, add it to the array and update the query
     //LOWER is added to include results when user inputs all lower case city name
     if(options.city) {
       queryParams.push(`%${options.city}%`);
-      queryString += ` WHERE LOWER(city) LIKE LOWER($${queryParams.length}) `;
-      cityEmpty = false;
+      if (!needWhere) {
+        queryString += ' AND ';
+      } else {
+        queryString += ' WHERE ';
+        needWhere = false;
+      } 
+      
+      queryString += ` LOWER(city) LIKE LOWER($${queryParams.length}) `;
     }
   
     //if price range is provided
@@ -165,7 +177,7 @@ const getAllProperties = function(options, limit = 10) {
       queryParams.push(options.minimum_price_per_night);
       queryParams.push(options.maximum_price_per_night);
       
-      if (!cityEmpty) {
+      if (!needWhere) {
         queryString += ' AND ';
       } else {
         queryString += ' WHERE ';
