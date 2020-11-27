@@ -29,7 +29,7 @@ const getUserWithEmail = function(email) {
     .query(query)
     .then(result => result.rows[0])
     .catch(err => console.error('query error', err.stack));
-}
+};
 exports.getUserWithEmail = getUserWithEmail;
 
 /**
@@ -48,7 +48,7 @@ const getUserWithId = function(id) {
     .query(query)
     .then(result => result.rows[0])
     .catch(err => console.error('query error', err.stack));
-}
+};
 exports.getUserWithId = getUserWithId;
 
 
@@ -70,7 +70,7 @@ const addUser =  function(user) {
     .then(result => result.rows[0])
     .catch(err => console.error('query error', err.stack));
   
-}
+};
 exports.addUser = addUser;
 
 /// Reservations
@@ -98,7 +98,7 @@ const getAllReservations = function(guest_id, limit = 10) {
     .query(query)
     .then(result => result.rows)
     .catch(err => console.error('query error', err.stack));
-}
+};
 // console.log(getAllReservations(100, 10));
 exports.getAllReservations = getAllReservations;
 
@@ -120,7 +120,7 @@ const getAllProperties = function(options, limit = 10) {
 
   //found non-empty value in options object
   for (const key in options) {
-    if (options[key] != ''){
+    if (options[key] !== '') {
       queries = true;
       break;
     }
@@ -152,28 +152,29 @@ const getAllProperties = function(options, limit = 10) {
     FROM properties
     LEFT JOIN property_reviews ON property_id = properties.id`;
     
-    if(options.owner_id) {
+    //if an owner_id is passed in the options object
+    if (options.owner_id) {
       queryParams.push(options.owner_id);
       queryString += ` WHERE properties.owner_id=$${queryParams.length} `;
       needWhere = false;
     }
 
-    //if a city is provided, add it to the array and update the query
+    //if a city is provided
     //LOWER is added to include results when user inputs all lower case city name
-    if(options.city) {
+    if (options.city) {
       queryParams.push(`%${options.city}%`);
       if (!needWhere) {
         queryString += ' AND ';
       } else {
         queryString += ' WHERE ';
         needWhere = false;
-      } 
+      }
       
       queryString += ` LOWER(city) LIKE LOWER($${queryParams.length}) `;
     }
   
     //if price range is provided
-    if(options.minimum_price_per_night && options.maximum_price_per_night) {
+    if (options.minimum_price_per_night && options.maximum_price_per_night) {
       queryParams.push(options.minimum_price_per_night);
       queryParams.push(options.maximum_price_per_night);
       
@@ -181,7 +182,7 @@ const getAllProperties = function(options, limit = 10) {
         queryString += ' AND ';
       } else {
         queryString += ' WHERE ';
-      } 
+      }
       
       queryString += `cost_per_night / 100 > $${queryParams.length - 1}
       AND cost_per_night / 100 < $${queryParams.length}`;
@@ -192,7 +193,7 @@ const getAllProperties = function(options, limit = 10) {
     
 
     //if minimum rating is provided
-    if(options.minimum_rating) {
+    if (options.minimum_rating) {
       queryParams.push(options.minimum_rating);
       queryString += ` HAVING AVG(property_reviews.rating) >= $${queryParams.length}`;
     }
@@ -205,12 +206,12 @@ const getAllProperties = function(options, limit = 10) {
     `;
 
     return pool
-    .query(queryString, queryParams)
-    .then(result => result.rows)
-    .catch(err => console.error('query error', err.stack));
+      .query(queryString, queryParams)
+      .then(result => result.rows)
+      .catch(err => console.error('query error', err.stack));
 
   }
-}
+};
 exports.getAllProperties = getAllProperties;
 
 
@@ -261,5 +262,5 @@ const addProperty = function(property) {
     .query(query)
     .then(result => result.rows[0])
     .catch(err => console.error('query error', err.stack));
-}
+};
 exports.addProperty = addProperty;
